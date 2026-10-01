@@ -1,29 +1,18 @@
-const express = require('express');
-const { Pool } = require('pg');
+# Usa a imagem oficial do Node.js
+FROM node:18-alpine
 
-const app = express();
-//verificar a porta a ser utilizada com o professor
-const port = 8080;
+# Define o diretório de trabalho dentro do contêiner
+WORKDIR /usr/src/app
 
-// Configuração de conexão com o banco (usando variáveis de ambiente)
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: 5432,
-});
+# Copia os arquivos de dependência e instala
+COPY package*.json ./
+RUN npm install
 
-app.get('/', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT NOW()');
-    res.send(`<h1>Comunicação com sucesso!</h1><p>Data do Banco de Dados: ${result.rows[0].now}</p>`);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Erro ao conectar no banco de dados. Tente atualizar a página em alguns segundos.');
-  }
-});
+# Copia o restante do código
+COPY . .
 
-app.listen(port, () => {
-  console.log(`App rodando na porta ${port}`);
-});
+# Expõe a porta que a aplicação vai usar
+EXPOSE 8080
+
+# Comando para iniciar a aplicação
+CMD ["node", "server.js"]
